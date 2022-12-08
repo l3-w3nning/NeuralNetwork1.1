@@ -78,14 +78,17 @@ server <- function(input, output) {
         #weights_list <- head(random_init,2)
         #biases <- tail(random_init,2)
         
-        nn <- NeuralNetwork$new(layer_sizes=layer_sizes,num_nodes_out=2,weights=weights_list,bias=biases)
+        nn <- NeuralNetwork$new(layer_sizes=layer_sizes,num_nodes_nn = list(c(2,3),c(3,2)),weights=weights_list,bias=biases)
+        #layers <- nn$GetLayers()
         #randomize initial weights
+        nn$initialize_random_layers()
+        
         #TBA Later:Update displayed weights (sliders) according to learning process
-        random_init <- random_weights_biases(layer_sizes=layer_sizes,range_weights=c(-1,1))
-        nn$weights <- head(random_init,2)
-        nn$bias <- tail(random_init,2)
-        
-        
+        # random_init <- random_weights_biases(layer_sizes=layer_sizes,range_weights=c(-1,1))
+        # nn$weights <- head(random_init,2)
+        # nn$bias <- tail(random_init,2)
+        # print(nn$weights)
+        # 
         
         x=seq(from=0,to=1,length.out=10)
         y=x
@@ -103,10 +106,10 @@ server <- function(input, output) {
         print(classification_error)
         v <- ggplot(data=data, aes(x=x, y=y,colour=label))+
             geom_point()
-        
-        while(classification_error>0.1){ #loop terminates when error <=0.1
-          layers <- Learn(data,nn)
-          output_train = mapply(nn$CalcOutputNN,data$x,data$y, MoreArgs = list(layers=layers))
+        nn$Learn(data) #testing
+        for (i in 1:100){
+          nn$Learn(data)
+          output_train = mapply(nn$CalcOutputNN,data$x,data$y)
           z_train = apply(output_train,MARGIN=2,nn$Classify)
           data_grid <- data_grid %>% mutate(z=z_train)
           classification_error=base::sum(z_train-data$bin_class)**2/length(data$bin_class)
@@ -115,8 +118,7 @@ server <- function(input, output) {
           print(paste("Average Error per Input:",classification_error))  
         }
         
-      
-        #end ClassifierPlot
+    
         })
     
 }

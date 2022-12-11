@@ -75,11 +75,11 @@ server <- function(input, output) {
         bias_1 = c(input$bias1_1,input$bias2_1,input$bias3_1)
         bias_2 = c(input$bias1_2,input$bias2_2)
         biases = list(bias_1,bias_2)
-        #weights_list <- head(random_init,2)
-        #biases <- tail(random_init,2)
+        weights_list <- head(random_init,2)
+        biases <- tail(random_init,2)
         
         nn <- NeuralNetwork$new(layer_sizes=layer_sizes,num_nodes_nn = list(c(2,3),c(3,2)),weights=weights_list,bias=biases)
-        #layers <- nn$GetLayers()
+        
         #randomize initial weights
         nn$initialize_random_layers()
         
@@ -102,19 +102,19 @@ server <- function(input, output) {
 
         output_train = mapply(nn$CalcOutputNN,data$x,data$y)
         z_train = apply(output_train,MARGIN=2,nn$Classify)
-        classification_error=base::sum(z_train-data$bin_class)**2/length(data$bin_class)
+        classification_error=base::sum(abs(z_train-data$bin_class))/length(data$bin_class)
         print(classification_error)
         v <- ggplot(data=data, aes(x=x, y=y,colour=label))+
             geom_point()
-        nn$Learn(data) #testing
-        for (i in 1:100){
-          nn$Learn(data)
+        nn$Learn(data,0.25,0.0001) #testing
+        for (i in 1:1000){
+          nn$Learn(data,0.25,0.1)
           output_train = mapply(nn$CalcOutputNN,data$x,data$y)
           z_train = apply(output_train,MARGIN=2,nn$Classify)
           data_grid <- data_grid %>% mutate(z=z_train)
-          classification_error=base::sum(z_train-data$bin_class)**2/length(data$bin_class)
-          v+geom_raster(data=data_grid,aes(x,y,alpha=0.2,fill=z_train),interpolate = TRUE)
-          print(v)
+          classification_error=base::sum(abs(z_train-data$bin_class))/length(data$bin_class)
+          #v<-v+geom_raster(data=data_grid,aes(x,y,fill=z_train),alpha=0.2)
+          #print(v)
           print(paste("Average Error per Input:",classification_error))  
         }
         

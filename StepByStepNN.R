@@ -111,12 +111,12 @@ NeuralNetwork <- setRefClass("NN",fields = list(layer_sizes = "numeric",num_node
                                       
                                                           #calculate direction of learning and stepwidth
                                                           delta_cost = classification_error_new - classification_error
-                                                          #alter stepwidth to increase convergence speed
+                                                          #alter learnrate to increase convergence speed
                                                           if (abs(delta_cost)>classification_error){
-                                                            stepwidth = 2*stepwidth
+                                                            learnrate = 2*learnrate
                                                           }
                                                           else if (abs(delta_cost)<classification_error){
-                                                            stepwidth = 0.5*stepwidth
+                                                            learnrate = 0.5*learnrate
                                                           }
                                                         
                                                           weight_gradient_layer[i,j] <- delta_cost/stepwidth
@@ -141,7 +141,7 @@ NeuralNetwork <- setRefClass("NN",fields = list(layer_sizes = "numeric",num_node
                                                       }
                                                       .self$weight_gradient[[layer_depth]] <- weight_gradient_layer
                                                       .self$bias_gradient[[layer_depth]] <- bias_gradient_layer
-                                                      print(.self$bias_gradient[[layer_depth]])
+                                                      #print(.self$bias_gradient[[layer_depth]])
                                                       #perform learning step
                                                       .self$ApplyGradient(learnrate,layer_depth)
                                                       layer_depth = layer_depth+1

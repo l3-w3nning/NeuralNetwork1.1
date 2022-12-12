@@ -10,59 +10,117 @@
 library(shiny)
 library(ggplot2)
 library(dplyr)
-library(akima)
+library(shinythemes)
 library(tidyr)
-
+stepWidth=0.001
 
 path=getwd()
 source(paste0(path,"/StepByStepNN.R"))
-consideredDigits <- 3
-stepWidth <- 1/10^(consideredDigits+1)
 
+linebreaks <- function(n){HTML(strrep(br(), n))}
 
-# Define UI for application that draws a histogram
 ui <- fluidPage(
-
-    # Application title
-    titlePanel("Simple DecisionBoundary Tool"),
-
-    # Sidebar with a slider input for number of bins 
-    headerPanel("Decision Boundary Params (One Hidden Layer with 3 Nodes)"),
-    sidebarPanel(
-      sliderInput(inputId = "W11", label = "W11", min = -1, max = 1, value = 0.1, step = stepWidth),
-      sliderInput(inputId = "W12", label = "W12", min = -1, max = 1, value = 0.2, step = stepWidth),
-      sliderInput(inputId = "W13", label = "W13", min = -1, max = 1, value = 0.3, step = stepWidth),
-      sliderInput(inputId = "W21", label = "W21", min = -1, max = 1, value = 0.4, step = stepWidth),
-      sliderInput(inputId = "W22", label = "W22", min = -1, max = 1, value = 0.5, step = stepWidth),
-      sliderInput(inputId = "W23", label = "W23", min = -1, max = 1, value = 0.6, step = stepWidth),
-      sliderInput(inputId = "bias1_1", label = "b1_1", min = -1, max = 1, value = 0.7, step = stepWidth),
-      sliderInput(inputId = "bias2_1", label = "b2_1", min = -1, max = 1, value = 0.8, step = stepWidth),
-      sliderInput(inputId = "bias3_1", label = "b3_1", min = -1, max = 1, value = 0.9, step = stepWidth),
-      sliderInput(inputId = "A11", label = "A11", min = -1, max = 1, value = 0.2, step = stepWidth),
-      sliderInput(inputId = "A21", label = "A21", min = -1, max = 1, value = 0.4, step = stepWidth),
-      sliderInput(inputId = "A31", label = "A31", min = -1, max = 1, value = 0.5, step = stepWidth),
-      sliderInput(inputId = "A12", label = "A12", min = -1, max = 1, value = 0.1, step = stepWidth),
-      sliderInput(inputId = "A22", label = "A22", min = -1, max = 1, value = 0.7, step = stepWidth),
-      sliderInput(inputId = "A32", label = "A32", min = -1, max = 1, value = 0.8, step = stepWidth),
-      sliderInput(inputId = "bias1_2", label = "b1_2", min = -1, max = 1, value = 1, step = stepWidth),
-      sliderInput(inputId = "bias2_2", label = "b2_2", min = -1, max = 1, value = 0, step = stepWidth)
+  
+  theme = shinytheme("superhero"),
+  title = "Neural Network From Scratch",
+  titlePanel("Simple NeuralNetwork Tool"),
+  sidebarPanel(
+    sliderInput(inputId = "learnrate", label = "learnrate", min = 0, max = 0.5, value = 0.25, step = stepWidth),
+    sliderInput(inputId = "stepwidth", label = "stepwidth", min = 0, max = 0.01, value = 0.001, step = stepWidth),
+    sliderInput(inputId = "epochs", label = "epochs", min = 10, max = 1000, value = 100, step = 1),
+    br(),
+    actionButton("LearnButton", "Learn"),
+    p("Click the button to let the Neural Network Learn once"),
+    actionButton("LearnButton2", "Learn More!"),
+    p("Click the button to let the Neural Network Learn multiple n times"),
+  ),
+  mainPanel(
+    br(),
+    br(),
+    br(),
+    plotOutput('ClassifierPlot')
+  ),
+  
+  
+  
+  fluidRow(
+    headerPanel("You can also set the Params yourself!"),
+    br(),
+    column(3,
+           h4("Weights First Layer"),
+           sliderInput(inputId = "W11", label = "W11", min = -10, max = 10, value = 5, step = stepWidth),
+           sliderInput(inputId = "W12", label = "W12", min = -10, max = 10, value = 5, step = stepWidth),
+           sliderInput(inputId = "W13", label = "W13", min = -10, max = 10, value = 6, step = stepWidth),
+           sliderInput(inputId = "W21", label = "W21", min = -10, max = 10, value = 7, step = stepWidth),
+           sliderInput(inputId = "W22", label = "W22", min = -10, max = 10, value = -2, step = stepWidth),
+           sliderInput(inputId = "W23", label = "W23", min = -10, max = 10, value = 3, step = stepWidth)
     ),
-    mainPanel(),
-
-        # Show a plot of the generated distribution
-        mainPanel(
-           plotOutput("ClassifierPlot"),
-           textOutput("selected_var")
-           
-        )
-    
+    column(3,
+           h4("Bias First Layer"),
+           sliderInput(inputId = "bias1_1", label = "b1_1", min = -10, max = 10, value = 7, step = stepWidth),
+           sliderInput(inputId = "bias2_1", label = "b2_1", min = -10, max = 10, value = 8, step = stepWidth),
+           sliderInput(inputId = "bias3_1", label = "b3_1", min = -10, max = 10, value = 9, step = stepWidth)
+    ),
+    column(3,
+           h4("Weights Second Layer"),
+           sliderInput(inputId = "A11", label = "A11", min = -10, max = 10, value = 2, step = stepWidth),
+           sliderInput(inputId = "A21", label = "A21", min = -10, max = 10, value = 4, step = stepWidth),
+           sliderInput(inputId = "A31", label = "A31", min = -10, max = 10, value = 5, step = stepWidth),
+           sliderInput(inputId = "A12", label = "A12", min = -10, max = 10, value = 1, step = stepWidth),
+           sliderInput(inputId = "A22", label = "A22", min = -10, max = 10, value = 7, step = stepWidth),
+           sliderInput(inputId = "A32", label = "A32", min = -10, max = 10, value = 8, step = stepWidth)
+    ),
+    column(3,
+           h4("Bias Second Layer"),
+           sliderInput(inputId = "bias1_2", label = "b1_2", min = -10, max = 10, value = 8, step = stepWidth),
+           sliderInput(inputId = "bias2_2", label = "b2_2", min = -10, max = 10, value = 0, step = stepWidth)
+    )
+  )
 )
 
-# Define server logic required to draw a histogram
+# Define UI for application that draws a histogram
+# ui <- fluidPage(
+# 
+#     # Application title
+#     titlePanel("Simple DecisionBoundary Tool"),
+# 
+#     # Sidebar with a slider input for number of bins 
+#     headerPanel("Decision Boundary Params (One Hidden Layer with 3 Nodes)"),
+#     sidebarPanel(
+#       sliderInput(inputId = "W11", label = "W11", min = -1, max = 1, value = 0.1, step = stepWidth),
+#       sliderInput(inputId = "W12", label = "W12", min = -1, max = 1, value = 0.2, step = stepWidth),
+#       sliderInput(inputId = "W13", label = "W13", min = -1, max = 1, value = 0.3, step = stepWidth),
+#       sliderInput(inputId = "W21", label = "W21", min = -1, max = 1, value = 0.4, step = stepWidth),
+#       sliderInput(inputId = "W22", label = "W22", min = -1, max = 1, value = 0.5, step = stepWidth),
+#       sliderInput(inputId = "W23", label = "W23", min = -1, max = 1, value = 0.6, step = stepWidth),
+#       sliderInput(inputId = "bias1_1", label = "b1_1", min = -1, max = 1, value = 0.7, step = stepWidth),
+#       sliderInput(inputId = "bias2_1", label = "b2_1", min = -1, max = 1, value = 0.8, step = stepWidth),
+#       sliderInput(inputId = "bias3_1", label = "b3_1", min = -1, max = 1, value = 0.9, step = stepWidth),
+#       sliderInput(inputId = "A11", label = "A11", min = -1, max = 1, value = 0.2, step = stepWidth),
+#       sliderInput(inputId = "A21", label = "A21", min = -1, max = 1, value = 0.4, step = stepWidth),
+#       sliderInput(inputId = "A31", label = "A31", min = -1, max = 1, value = 0.5, step = stepWidth),
+#       sliderInput(inputId = "A12", label = "A12", min = -1, max = 1, value = 0.1, step = stepWidth),
+#       sliderInput(inputId = "A22", label = "A22", min = -1, max = 1, value = 0.7, step = stepWidth),
+#       sliderInput(inputId = "A32", label = "A32", min = -1, max = 1, value = 0.8, step = stepWidth),
+#       sliderInput(inputId = "bias1_2", label = "b1_2", min = -1, max = 1, value = 1, step = stepWidth),
+#       sliderInput(inputId = "bias2_2", label = "b2_2", min = -1, max = 1, value = 0, step = stepWidth)
+#     ),
+#     mainPanel(),
+# 
+#         # Show a plot of the generated distribution
+#         mainPanel(
+#            plotOutput("ClassifierPlot"),
+#            textOutput("selected_var")
+#            
+#         )
+#     
+# )
+
+
 server <- function(input, output) {
       
     
-    data <- data.frame(x=runif(100),y=runif(100)) %>% 
+    data_train <- data.frame(x=runif(100),y=runif(100)) %>% 
       mutate(label=ifelse(test=sqrt((x**2+y**2))<=0.5,yes = "red" ,no="blue")) %>% mutate(bin_class = ifelse(label=="red",yes=1,no=0))
       
     output$ClassifierPlot <- renderPlot({
@@ -75,8 +133,8 @@ server <- function(input, output) {
         bias_1 = c(input$bias1_1,input$bias2_1,input$bias3_1)
         bias_2 = c(input$bias1_2,input$bias2_2)
         biases = list(bias_1,bias_2)
-        weights_list <- head(random_init,2)
-        biases <- tail(random_init,2)
+        #weights_list <- head(random_init,2)
+        #biases <- tail(random_init,2)
         
         nn <- NeuralNetwork$new(layer_sizes=layer_sizes,num_nodes_nn = list(c(2,3),c(3,2)),weights=weights_list,bias=biases)
         
@@ -100,24 +158,49 @@ server <- function(input, output) {
         #data_grid <- data_grid %>% mutate(z=z)
         
 
-        output_train = mapply(nn$CalcOutputNN,data$x,data$y)
+        output_train = mapply(nn$CalcOutputNN,data_train$x,data_train$y)
         z_train = apply(output_train,MARGIN=2,nn$Classify)
-        classification_error=base::sum(abs(z_train-data$bin_class))/length(data$bin_class)
+        classification_error=base::sum(abs(z_train-data_train$bin_class))/length(data_train$bin_class)
         print(classification_error)
-        v <- ggplot(data=data, aes(x=x, y=y,colour=label))+
-            geom_point()
-        nn$Learn(data,0.25,0.0001) #testing
-        for (i in 1:1000){
-          nn$Learn(data,0.25,0.1)
-          output_train = mapply(nn$CalcOutputNN,data$x,data$y)
-          z_train = apply(output_train,MARGIN=2,nn$Classify)
-          data_grid <- data_grid %>% mutate(z=z_train)
-          classification_error=base::sum(abs(z_train-data$bin_class))/length(data$bin_class)
-          #v<-v+geom_raster(data=data_grid,aes(x,y,fill=z_train),alpha=0.2)
-          #print(v)
-          print(paste("Average Error per Input:",classification_error))  
-        }
-        
+        v <- ggplot()+
+            geom_point(data=data_train, aes(x=x, y=y,colour=label))+theme(legend.position = "none")
+        v <- v +
+          geom_raster(data= data_grid, aes(x,y,fill = z_train), interpolate = TRUE,alpha=0.2)+
+          labs(title=paste("Correcly classified points with current setup:",100*classification_error,"%"))+
+          xlab("X-Data")+ylab("Y-Data")+
+          scale_fill_gradient(low="blue",high="red")
+        #v<-v+geom_raster(data=data_grid,aes(x,y,fill=z_train),alpha=0.2)
+        print(v)
+        learnrate = input$learnrate
+        stepwidth = input$stepwidth
+        epochs = input$epochs
+        observeEvent(input$LearnButton, {
+          nn$Learn(data_train,learnrate,stepwidth)
+        })
+        observeEvent(input$LearnButton2, {
+          for (i in 1:epochs){
+            nn$Learn(data_train,0.25,0.1)
+            output_train = mapply(nn$CalcOutputNN,data_train$x,data_train$y)
+            z_train = apply(output_train,MARGIN=2,nn$Classify)
+            data_grid <- data_grid %>% mutate(z=z_train)
+            classification_error=base::sum(abs(z_train-data_train$bin_class))/length(data_train$bin_class)
+            v<-v+geom_raster(data=data_grid,aes(x,y,fill=z_train),interpolate=TRUE,alpha=0.2)
+            print(v)
+            print(paste("Average Error per Input:",classification_error))
+          }
+        })
+        # nn$Learn(data_train,learnrate,stepwidth) #testing
+        # for (i in 1:epochs){
+        #   nn$Learn(data_train,0.25,0.1)
+        #   output_train = mapply(nn$CalcOutputNN,data_train$x,data_train$y)
+        #   z_train = apply(output_train,MARGIN=2,nn$Classify)
+        #   data_grid <- data_grid %>% mutate(z=z_train)
+        #   classification_error=base::sum(abs(z_train-data_train$bin_class))/length(data_train$bin_class)
+        #   v<-v+geom_raster(data=data_grid,aes(x,y,fill=z_train),alpha=0.2)
+        #   print(v)
+        #   print(paste("Average Error per Input:",classification_error))
+        # }
+        # 
     
         })
     

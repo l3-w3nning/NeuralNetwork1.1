@@ -36,7 +36,7 @@ layer <- setRefClass("Layer", fields = list(num_nodes_in = "numeric",
 NeuralNetwork <- setRefClass("NN",fields = list(layer_sizes = "numeric",num_nodes_nn="list",weights = "list",bias = "list",layers="list",weight_gradient="list",bias_gradient="list"),
                                             
                                             methods = list(
-                                                  intialize = function(layer_sizes,num_nodes_nn,layers=NA,weight_gradient=NA,bias_gradient=NA){
+                                                  intialize = function(layer_sizes,num_nodes_nn,layers=NA,weight_gradient=NA,bias_gradient=NA,weights=NA,bias=NA){
                                                    .self$layer_sizes <- layer_sizes
                                                    .self$num_nodes_nn <- num_nodes_nn
                                                    .self$weights <- weights
@@ -70,7 +70,7 @@ NeuralNetwork <- setRefClass("NN",fields = list(layer_sizes = "numeric",num_node
                                                     # else{
                                             
                                                       for (layer_depth in 1:length(.self$layers)){
-                                                        
+                                          
                                                         input = input %*% .self$layers[[layer_depth]]$weights
                                                         input = input + .self$layers[[layer_depth]]$bias
                                                         input = .self$ActivationFunction(input)
@@ -93,7 +93,7 @@ NeuralNetwork <- setRefClass("NN",fields = list(layer_sizes = "numeric",num_node
                                                       output_train = mapply(.self$CalcOutputNN,data_train$x,data_train$y)
         
                                                       z_train = apply(output_train,MARGIN=2,.self$Classify)
-                                                      classification_error=base::sum(abs(z_train-data$bin_class))/length(data$bin_class) #starting value, to be optimized
+                                                      classification_error=base::sum(abs(z_train-data_train$bin_class))/length(data_train$bin_class) #starting value, to be optimized
                                                       
                                                       weight_gradient_layer <- matrix(nrow=layer$num_nodes_in,ncol=layer$num_nodes_out)
                                                       bias_gradient_layer <- rep(NA,layer$num_nodes_out)
@@ -107,7 +107,7 @@ NeuralNetwork <- setRefClass("NN",fields = list(layer_sizes = "numeric",num_node
                                                           #classifiy updated Output
                                                           z_train = apply(output_train,MARGIN=2,.self$Classify)
                                                           #calculate new error
-                                                          classification_error_new=base::sum(abs(z_train-data$bin_class))/length(data$bin_class) #starting value, to be optimized
+                                                          classification_error_new=base::sum(abs(z_train-data_train$bin_class))/length(data_train$bin_class) #starting value, to be optimized
                                       
                                                           #calculate direction of learning and stepwidth
                                                           delta_cost = classification_error_new - classification_error
@@ -133,7 +133,7 @@ NeuralNetwork <- setRefClass("NN",fields = list(layer_sizes = "numeric",num_node
                                                         output_train = mapply(.self$CalcOutputNN,data_train$x,data_train$y)
                                                         
                                                         z_train = apply(output_train,MARGIN=2,.self$Classify)
-                                                        classification_error_new=base::sum(abs(z_train-data$bin_class))/length(data$bin_class) 
+                                                        classification_error_new=base::sum(abs(z_train-data_train$bin_class))/length(data_train$bin_class) 
                                                         #calculate cost in comparison to starting point
                                                         delta_cost = classification_error_new - classification_error
                                                         bias_gradient_layer[i] <- delta_cost/stepwidth
